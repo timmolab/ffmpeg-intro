@@ -745,7 +745,7 @@
       <li><a href="#what">1. What is FFmpeg?</a></li>
       <li><a href="#history">2. A bit of history</a></li>
       <li><a href="#install">3. Installing it</a></li>
-      <li><a href="#mental">4. The mental model</a></li>
+      <li><a href="#mental">4. Key concepts</a></li>
       <li><a href="#flags">5. Flag cheat-sheet</a></li>
       <li><a href="#first">6. First commands</a></li>
       <li><a href="#capture">7. Capturing from a device</a></li>
@@ -877,7 +877,9 @@
 
 <!-- ============================================================ -->
 <section id="mental">
-  <h2>4. The mental model</h2>
+  <h2>4. Key concepts</h2>
+
+  <h3>The shape of an FFmpeg command</h3>
   <p>Every FFmpeg command reads roughly the same way:</p>
 <pre><code>ffmpeg [global opts]  -i INPUT  [input opts]  [filters]  [output opts]  OUTPUT</code></pre>
   <ul class="tight">
@@ -886,7 +888,37 @@
     <li>The <strong>output filename comes last</strong>. No flag — just the path.</li>
   </ul>
   <div class="callout"><strong>Order matters!</strong> <code>-ss 30 -i input.mp4</code> seeks before decoding (fast). <code>-i input.mp4 -ss 30</code> seeks after decoding (slow but precise).</div>
-  <div class="callout info"><strong>Note:</strong> not every command needs an output file. Replacing the output with <code>-f null -</code> tells FFmpeg to process the input but throw the result away. Useful when you only care about the side effects — analysis logs (VMAF, cropdetect), validating a file, or testing a filter graph without writing anything to disk.</div>
+
+  <h3>Streams inside a container</h3>
+  <p>A media file is a <strong>container</strong> that holds one or more <strong>streams</strong> — video, audio, subtitles, sometimes data. A single <code>.mp4</code> might have one video stream and two audio tracks (e.g. original + dubbed); an audio file can have an embedded cover image as a video stream. FFmpeg addresses streams using <code>INPUT:TYPE:INDEX</code>:</p>
+  <ul class="tight">
+    <li><code>0:v:0</code> — input file 0, first <em>video</em> stream</li>
+    <li><code>0:a:0</code> — input file 0, first <em>audio</em> stream</li>
+    <li><code>0:a:1</code> — input file 0, second audio stream (e.g. the dub)</li>
+    <li><code>1:s:0</code> — input file 1, first <em>subtitle</em> stream</li>
+  </ul>
+  <p>The <code>-map</code> flag explicitly chooses which streams end up in the output. Without it, FFmpeg auto-picks the "best" stream of each type — usually the right call, occasionally a surprising one.</p>
+
+  <h3>Container vs. codec</h3>
+  <p>The <strong>container</strong> is the file's wrapper (<code>.mp4</code>, <code>.mkv</code>, <code>.webm</code>, …). The <strong>codec</strong> is the algorithm that compresses the audio or video data inside it. They are <em>independent</em> choices:</p>
+  <ul class="tight">
+    <li>The output filename's <strong>extension</strong> determines the container.</li>
+    <li><code>-c:v</code> / <code>-c:a</code> determines the codec inside.</li>
+  </ul>
+  <p>Each container only supports certain codecs. For example, <code>.webm</code> only accepts VP8 / VP9 / AV1 video and Vorbis / Opus audio. Mismatched combinations fail with errors like "could not find tag for codec X in stream Y." When in doubt, <strong>MP4 + H.264 + AAC</strong> is the universal-compatibility default.</p>
+
+  <p>Beyond basic compatibility, many <strong>flags only work with specific encoders or containers</strong> — even though their names look generic. A few common gotchas:</p>
+  <ul class="tight">
+    <li><code>-crf</code> (constant quality) is supported by <code>libx264</code>, <code>libx265</code>, and <code>libvpx-vp9</code>. NVIDIA's <code>h264_nvenc</code> uses <code>-cq</code> instead — same idea, different flag name.</li>
+    <li><code>-preset slow</code> makes sense for <code>libx264</code> (values: <code>ultrafast</code> → <code>veryslow</code>). NVENC also accepts <code>-preset</code>, but with values like <code>p1</code> through <code>p7</code> — same option name, completely different value scheme.</li>
+    <li><code>-tune zerolatency</code>, <code>-tune film</code>, etc. are <code>libx264</code>/<code>libx265</code>-specific. Hardware encoders ignore them.</li>
+    <li><code>-movflags +faststart</code> (moves the index to the beginning of the file for streamable MP4) only applies to MP4 and MOV containers. Silently ignored elsewhere.</li>
+    <li>Trying to put H.264 in a <code>.webm</code> output is rejected outright — the container's spec doesn't allow it.</li>
+  </ul>
+  <p>The takeaway: when copying a command from somewhere, check that its flags actually apply to the encoder and container you're using. The <a href="#appendix-errors">errors appendix</a> lists the typical failure messages.</p>
+
+  <h3>Output is optional</h3>
+  <div class="callout info">Not every command needs an output file. Replacing the output with <code>-f null -</code> tells FFmpeg to process the input but throw the result away. Useful when you only care about the side effects — analysis logs (VMAF, cropdetect), validating a file, or testing a filter graph without writing anything to disk.</div>
 </section>
 
 <!-- ============================================================ -->
