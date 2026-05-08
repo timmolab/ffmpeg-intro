@@ -4,7 +4,7 @@ A practical, single-page introduction to [FFmpeg](https://ffmpeg.org/) — what 
 
 ## Access FFmpeg Intro
 
-- **Live:** https://timmolab.github.io/ffmpeg-intro/
+- **Live:** https://ffmpeg-intro.pages.dev
 - **Locally:** clone the repo and open `index.html` in any modern browser. It's a single self-contained file — no build step, no server needed.
 
 ## What's inside
