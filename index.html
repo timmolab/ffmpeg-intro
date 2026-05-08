@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FFmpeg Intro</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230f172a'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='Arial,sans-serif' font-weight='700' font-size='14' fill='%23ffffff'%3EFF%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fafafa;
+    --panel: #ffffff;
+    --ink: #0f172a;
+    --ink-soft: #334155;
+    --muted: #64748b;
+    --muted-2: #94a3b8;
+    --accent: #1e40af;
+    --accent-hover: #1e3a8a;
+    --accent-soft: #eff6ff;
+    --border: #e2e8f0;
+    --border-strong: #cbd5e1;
+    --code-bg: #0f172a;
+    --code-ink: #e2e8f0;
+    --code-inline-bg: #f1f5f9;
+    --warn-bg: #fefce8;
+    --warn-border: #ca8a04;
+    --ok-bg: #f0fdf4;
+    --ok-border: #16a34a;
+    --link-underline: rgba(30, 64, 175, 0.25);
+    --brand-mark-bg: #0f172a;
+    --brand-mark-ink: #ffffff;
+  }
+  [data-theme="dark"] {
+    --bg: #0b1120;
+    --panel: #131c2f;
+    --ink: #f1f5f9;
+    --ink-soft: #cbd5e1;
+    --muted: #94a3b8;
+    --muted-2: #64748b;
+    --accent: #60a5fa;
+    --accent-hover: #93c5fd;
+    --accent-soft: rgba(96, 165, 250, 0.12);
+    --border: #1f2a44;
+    --border-strong: #334155;
+    --code-bg: #020617;
+    --code-ink: #e2e8f0;
+    --code-inline-bg: #1e293b;
+    --warn-bg: rgba(202, 138, 4, 0.12);
+    --warn-border: #ca8a04;
+    --ok-bg: rgba(22, 163, 74, 0.14);
+    --ok-border: #22c55e;
+    --link-underline: rgba(96, 165, 250, 0.35);
+    --brand-mark-bg: #f1f5f9;
+    --brand-mark-ink: #0f172a;
+  }
+  html { color-scheme: light; }
+  html[data-theme="dark"] { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-feature-settings: "cv11", "ss01";
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 48px;
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 32px 40px 80px;
+  }
+  .sidebar {
+    position: sticky;
+    top: 32px;
+    align-self: start;
+    max-height: calc(100vh - 64px);
+    overflow-y: auto;
+  }
+  .main { min-width: 0; }
+  header.hero {
+    border-bottom: 1px solid var(--border);
+    padding: 8px 0 32px;
+    margin-bottom: 36px;
+  }
+  header.hero .eyebrow {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  header.hero h1 {
+    margin: 0 0 12px;
+    font-size: 2.4rem;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  header.hero p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 1.075rem;
+    max-width: 60ch;
+  }
+  header.hero .meta {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  header.hero .version {
+    display: inline-block;
+    padding: 4px 10px;
+    background: var(--panel);
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    color: var(--ink-soft);
+    letter-spacing: 0.02em;
+  }
+  header.hero .meta .dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--muted-2);
+  }
+  header.hero .meta .label {
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 4px 18px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+  }
+  .brand.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .brand .mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: var(--brand-mark-bg);
+    color: var(--brand-mark-ink);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .brand .name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    text-decoration: none;
+    border: none;
+  }
+  nav.toc {
+    padding: 4px 0;
+  }
+  nav.toc h2 {
+    margin: 0 0 14px;
+    padding: 0 14px;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  nav.toc ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-left: 1px solid var(--border);
+  }
+  nav.toc li { margin: 0; }
+  nav.toc a {
+    display: block;
+    padding: 8px 16px;
+    margin-left: -1px;
+    border-left: 2px solid transparent;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.98rem;
+    line-height: 1.4;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+  nav.toc a:hover {
+    color: var(--ink);
+    border-left-color: var(--border-strong);
+  }
+  nav.toc a.active {
+    color: var(--accent);
+    font-weight: 600;
+    border-left-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  nav.toc .has-children { position: relative; }
+  nav.toc .toc-row {
+    display: flex;
+    align-items: stretch;
+    margin-left: -1px;
+    border-left: 2px solid transparent;
+  }
+  nav.toc .has-children.expanded .toc-row { border-left-color: var(--border-strong); }
+  nav.toc .has-children .toc-row > a {
+    flex: 1;
+    border-left: none;
+    margin-left: 0;
+    padding-right: 4px;
+  }
+  nav.toc .toc-toggle {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0 12px 0 6px;
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    transition: color 0.15s;
+  }
+  nav.toc .toc-toggle:hover { color: var(--ink); }
+  nav.toc .toc-toggle svg {
+    width: 14px;
+    height: 14px;
+    transition: transform 0.2s ease;
+  }
+  nav.toc .has-children.expanded .toc-toggle svg { transform: rotate(90deg); }
+  nav.toc .toc-children {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-left: none;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+  }
+  nav.toc .has-children.expanded .toc-children { max-height: 600px; }
+  nav.toc .toc-children li { margin: 0; }
+  nav.toc .toc-children a {
+    padding-left: 32px;
+    font-size: 0.92rem;
+    color: var(--muted);
+  }
+  nav.toc .toc-children a.active {
+    background: var(--accent-soft);
+    border-left-color: var(--accent);
+  }
+  section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 32px 36px;
+    margin-bottom: 20px;
+  }
+  section h2 {
+    margin: 0 0 22px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .section-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 32px;
+    padding: 0 10px;
+    margin-right: 14px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    font-feature-settings: "tnum";
+    flex-shrink: 0;
+  }
+  section h3 {
+    margin: 32px 0 10px;
+    font-size: 1.18rem;
+    font-weight: 650;
+    line-height: 1.35;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  section h4 {
+    margin: 22px 0 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+  p { margin: 10px 0; color: var(--ink-soft); }
+  section p { color: var(--ink-soft); }
+  strong { color: var(--ink); font-weight: 600; }
+  code {
+    background: var(--code-inline-bg);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.86em;
+    color: var(--ink);
+    border: 1px solid var(--border);
+  }
+  pre {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    padding: 16px 18px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    margin: 10px 0 16px;
+    border: 1px solid var(--border-strong);
+  }
+  pre code { background: transparent; padding: 0; color: inherit; border: none; font-size: inherit; }
+  /* Per-command "Explain this command" expandable panel */
+  details.cmd-explain {
+    margin: -10px 0 18px;
+    background: var(--accent-soft);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    overflow: hidden;
+    font-size: 0.92rem;
+  }
+  details.cmd-explain summary {
+    cursor: pointer;
+    padding: 8px 14px;
+    color: var(--accent);
+    font-weight: 500;
+    user-select: none;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.12s;
+  }
+  details.cmd-explain summary:hover { background: rgba(30, 64, 175, 0.08); }
+  details.cmd-explain summary::-webkit-details-marker { display: none; }
+  details.cmd-explain summary::before {
+    content: '';
+    width: 0;
+    height: 0;
+    border-left: 5px solid currentColor;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    transition: transform 0.18s ease;
+  }
+  details.cmd-explain[open] summary::before { transform: rotate(90deg); }
+  details.cmd-explain .cmd-explain-body {
+    padding: 4px 14px 12px;
+    border-top: 1px solid rgba(30, 64, 175, 0.15);
+  }
+  details.cmd-explain table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 0;
+    font-size: 0.9rem;
+  }
+  details.cmd-explain table th,
+  details.cmd-explain table td {
+    border: none;
+    border-bottom: 1px solid rgba(30, 64, 175, 0.1);
+    padding: 6px 8px;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  details.cmd-explain table tr:last-child td { border-bottom: none; }
+  details.cmd-explain table td:first-child {
+    white-space: nowrap;
+    vertical-align: top;
+    width: 1%;
+  }
+  details.cmd-explain table td:first-child code {
+    background: var(--panel);
+    border-color: var(--border-strong);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.92rem;
+  }
+  th, td {
+    border-bottom: 1px solid var(--border);
+    padding: 10px 14px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: transparent;
+    font-weight: 600;
+    color: var(--ink);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border-strong);
+    color: var(--muted);
+  }
+  td { color: var(--ink-soft); }
+  td strong { color: var(--ink); }
+  td code { white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  .callout {
+    border-left: 3px solid var(--warn-border);
+    background: var(--warn-bg);
+    padding: 12px 16px;
+    border-radius: 0 6px 6px 0;
+    margin: 14px 0;
+    font-size: 0.93rem;
+    color: var(--ink-soft);
+  }
+  .callout.ok {
+    border-color: var(--ok-border);
+    background: var(--ok-bg);
+  }
+  .callout.info {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .callout strong { display: inline-block; margin-right: 4px; color: var(--ink); }
+  ul.tight li { margin: 4px 0; color: var(--ink-soft); }
+  li { color: var(--ink-soft); }
+  a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid var(--link-underline);
+    transition: border-color 0.12s, color 0.12s;
+  }
+  a:hover {
+    color: var(--accent-hover);
+    border-bottom-color: var(--accent);
+  }
+  nav.toc a, header.hero .version, .brand { border-bottom: none; }
+  .brand:hover { opacity: 1; }
+  .brand:hover .name { color: var(--accent); }
+  .pill {
+    display: inline-block;
+    background: transparent;
+    color: var(--muted);
+    padding: 2px 8px;
+    border: 1px solid var(--border-strong);
+    border-radius: 4px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-left: 10px;
+    vertical-align: middle;
+  }
+  footer {
+    text-align: left;
+    color: var(--muted);
+    font-size: 0.82rem;
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  footer code {
+    font-size: 0.8rem;
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: var(--muted);
+  }
+  .theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--panel);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.15s;
+  }
+  .theme-toggle:hover {
+    color: var(--ink);
+    border-color: var(--ink-soft);
+    transform: translateY(-1px);
+  }
+  .theme-toggle svg { width: 18px; height: 18px; }
+  .theme-toggle .icon-sun { display: none; }
+  [data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+  [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+  .code-block {
+    position: relative;
+    margin: 10px 0 16px;
+  }
+  .code-block pre { margin: 0; }
+  .copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px 10px;
+    font-size: 0.72rem;
+    font-family: "Inter", -apple-system, sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: #cbd5e1;
+    background: rgba(30, 41, 59, 0.85);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 5px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s, color 0.15s, background 0.15s, border-color 0.15s;
+    backdrop-filter: blur(4px);
+  }
+  .code-block:hover .copy-btn,
+  .copy-btn:focus {
+    opacity: 1;
+  }
+  @media (hover: none) {
+    .copy-btn { opacity: 0.85; }
+  }
+  .copy-btn:hover {
+    color: #fff;
+    background: rgba(51, 65, 85, 0.95);
+    border-color: rgba(148, 163, 184, 0.5);
+  }
+  .copy-btn.copied {
+    opacity: 1;
+    color: #86efac;
+    border-color: rgba(34, 197, 94, 0.5);
+    background: rgba(22, 101, 52, 0.4);
+  }
+  .back-to-top {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 100;
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--panel);
+    border: 1px solid var(--border-strong);
+    border-radius: 50%;
+    color: var(--ink-soft);
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(8px);
+    transition: opacity 0.2s, transform 0.2s, color 0.15s, border-color 0.15s, background 0.15s;
+  }
+  .back-to-top.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+  .back-to-top:hover {
+    color: var(--ink);
+    border-color: var(--ink-soft);
+    transform: translateY(-2px);
+  }
+  .back-to-top svg { width: 18px; height: 18px; }
+  .header-anchor {
+    margin-left: 8px;
+    padding: 0 4px;
+    color: var(--muted-2);
+    font-weight: 400;
+    font-size: 0.85em;
+    border: none;
+    text-decoration: none;
+    opacity: 0;
+    transition: opacity 0.15s, color 0.15s;
+    user-select: none;
+  }
+  h2:hover .header-anchor,
+  h3:hover .header-anchor,
+  h4:hover .header-anchor,
+  .header-anchor:focus {
+    opacity: 1;
+  }
+  .header-anchor:hover { color: var(--accent); }
+  .header-anchor.copied {
+    opacity: 1;
+    color: var(--ok-border);
+  }
+  @media (hover: none) {
+    .header-anchor { opacity: 0.55; }
+  }
+  /* Vertical history timeline */
+  .timeline {
+    list-style: none;
+    margin: 22px 0 16px;
+    padding: 0;
+    position: relative;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 96px;
+    top: 14px;
+    bottom: 14px;
+    width: 2px;
+    background: var(--border);
+  }
+  .timeline li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 28px;
+    padding: 10px 0;
+    align-items: start;
+  }
+  .timeline li::before {
+    content: '';
+    position: absolute;
+    left: 91px;
+    top: 22px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--panel);
+    border: 2px solid var(--muted-2);
+    z-index: 1;
+  }
+  .timeline li.timeline-today::before {
+    background: var(--ok-border);
+    border-color: var(--ok-border);
+    box-shadow: 0 0 0 4px var(--ok-bg);
+  }
+  .timeline-year {
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--ink);
+    text-align: right;
+    padding-right: 8px;
+    padding-top: 4px;
+    letter-spacing: -0.01em;
+  }
+  .timeline-content {
+    color: var(--ink-soft);
+    padding-left: 18px;
+    line-height: 1.55;
+  }
+  .timeline-content code { font-size: 0.86em; }
+  @media (max-width: 640px) {
+    .timeline::before { left: 6px; }
+    .timeline li {
+      grid-template-columns: 1fr;
+      gap: 4px;
+      padding-left: 28px;
+    }
+    .timeline li::before { left: 1px; top: 12px; }
+    .timeline-year { text-align: left; padding: 0; }
+    .timeline-content { padding-left: 0; }
+  }
+  @media (max-width: 900px) {
+    .layout {
+      grid-template-columns: 1fr;
+      gap: 24px;
+      padding: 20px;
+    }
+    .sidebar {
+      position: static;
+      max-height: none;
+    }
+    nav.toc ul {
+      border-left: none;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      padding: 8px 0;
+    }
+    nav.toc a { border-left: none; padding: 6px 12px; }
+    nav.toc a:hover { border-left: none; background: var(--accent-soft); border-radius: 4px; }
+    header.hero h1 { font-size: 1.75rem; }
+    header.hero { padding-bottom: 24px; margin-bottom: 24px; }
+    section { padding: 22px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle light/dark theme" title="Toggle light/dark theme">
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="4"/>
+    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+  </svg>
+</button>
+
+<button class="back-to-top" id="backToTop" type="button" aria-label="Back to top" title="Back to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polyline points="18 15 12 9 6 15"/>
+  </svg>
+</button>
+
+<div class="layout">
+
+<aside class="sidebar">
+  <a class="brand" href="#top" id="brand">
+    <span class="mark">FF</span>
+    <span class="name">FFmpeg Intro</span>
+  </a>
+  <nav class="toc">
+    <h2>What's inside</h2>
+    <ul>
+      <li><a href="#what">1. What is FFmpeg?</a></li>
+      <li><a href="#history">2. A bit of history</a></li>
+      <li><a href="#install">3. Installing it</a></li>
+      <li><a href="#mental">4. The mental model</a></li>
+      <li><a href="#flags">5. Flag cheat-sheet</a></li>
+      <li><a href="#first">6. First commands</a></li>
+      <li><a href="#capture">7. Capturing from a device</a></li>
+      <li><a href="#cut-crop">8. Cut, crop, snapshot</a></li>
+      <li><a href="#frames">9. Working with frames</a></li>
+      <li><a href="#gpu">10. CPU vs GPU encoding</a></li>
+      <li><a href="#metadata">11. Metadata and FFprobe</a></li>
+      <li><a href="#vmaf">12. VMAF — quality scoring</a></li>
+      <li><a href="#links">13. Useful links</a></li>
+      <li class="has-children" id="tocAppendix">
+        <div class="toc-row">
+          <a href="#appendix">A. Appendix</a>
+          <button class="toc-toggle" type="button" aria-expanded="false" aria-controls="tocAppendixChildren" aria-label="Toggle appendix list">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
+        <ul class="toc-children" id="tocAppendixChildren">
+          <li><a href="#appendix-errors">A.1 Common error messages</a></li>
+          <li><a href="#appendix-perf">A.2 Performance tuning &amp; presets</a></li>
+          <li><a href="#appendix-glossary">A.3 Glossary</a></li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+</aside>
+
+<main class="main">
+
+<header class="hero" id="top">
+  <span class="eyebrow">Reference Guide</span>
+  <h1>FFmpeg Intro</h1>
+  <p>A practical introduction to FFmpeg — what it is, where it came from, and how to use it for the most common audio and video tasks. Built around real command examples you can adapt as you go.</p>
+  <div class="meta">
+    <span class="label">Updated 2026-05-08</span>
+  </div>
+</header>
+
+<!-- ============================================================ -->
+<section id="what">
+  <h2>1. What is FFmpeg?</h2>
+  <p><strong>FFmpeg</strong> is a free, all-in-one command-line tool for working with audio and video. It can <em>record</em>, <em>convert</em>, <em>resize</em>, <em>crop</em>, <em>cut</em>, <em>combine</em>, <em>extract frames</em>, <em>measure quality</em> — basically anything you'd want to do with a media file, without ever opening a GUI.</p>
+  <p>You don't need to memorize the exact commands — but it's useful to know which options exist, so you recognize what's possible and can look up the right syntax when you need it. Most people keep a small list of recipes (like this page) and adapt them as they go.</p>
+  <div class="callout info"><strong>Official site:</strong> <a href="https://ffmpeg.org/">ffmpeg.org</a> — downloads, news and the source code.<br><strong>Official documentation:</strong> <a href="https://ffmpeg.org/documentation.html">ffmpeg.org/documentation</a> — full reference for every command, flag, and filter.<br><strong>Companion tools:</strong> <code>ffprobe</code> (inspect files) and <code>ffplay</code> (quick playback) ship in the same bundle.</div>
+
+  <h3>Tools and services built on FFmpeg</h3>
+  <p>Even if it's the first time you hear about it, chances are you've already used FFmpeg without knowing — it's the engine behind a huge slice of the media ecosystem:</p>
+  <table>
+    <tr><th>Tool</th><th>What it is</th><th>How it uses FFmpeg</th></tr>
+    <tr><td><strong>VLC media player</strong></td><td>Popular open-source video player</td><td>Uses libavcodec / libavformat (FFmpeg's libraries) for decoding most formats</td></tr>
+    <tr><td><strong>OBS Studio</strong></td><td>Streaming &amp; screen-recording app used by Twitch/YouTube creators</td><td>Bundles FFmpeg for recording, encoding and muxing output</td></tr>
+    <tr><td><strong>Shotcut</strong></td><td>Open-source video editor</td><td>Built on top of FFmpeg's libraries for import, export and rendering</td></tr>
+    <tr><td><strong>Audacity</strong></td><td>Audio editor</td><td>Optional FFmpeg plugin enables import/export of MP3, M4A, WMA, etc.</td></tr>
+  </table>
+  <p>So when you learn FFmpeg directly, you're learning the same engine that's already running quietly inside dozens of products you use every day.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="history">
+  <h2>2. A bit of history</h2>
+  <p>FFmpeg has been around longer than YouTube. Knowing where it came from explains why it shows up in so many places today.</p>
+
+  <ol class="timeline">
+    <li>
+      <span class="timeline-year">2000</span>
+      <div class="timeline-content">Created by French programmer <strong><a href="https://en.wikipedia.org/wiki/Fabrice_Bellard">Fabrice Bellard</a></strong>. Initial focus: a fast, minimal MPEG video encoder/decoder.</div>
+    </li>
+    <li>
+      <span class="timeline-year">2003</span>
+      <div class="timeline-content">Bellard handed over maintenance to <strong>Michael Niedermayer</strong>, who led the project for the next decade-plus.</div>
+    </li>
+    <li>
+      <span class="timeline-year">2004–2010</span>
+      <div class="timeline-content">Rapid growth — <a href="https://www.ffmpeg.org/libavcodec.html"><code>libavcodec</code></a> and <a href="https://www.ffmpeg.org/libavformat.html"><code>libavformat</code></a> become the de-facto open-source codec stack, adopted by <a href="https://www.videolan.org/vlc/">VLC</a> and many other media tools.</div>
+    </li>
+    <li>
+      <span class="timeline-year">2017+</span>
+      <div class="timeline-content">Native support added for modern codecs (<a href="https://en.wikipedia.org/wiki/High_Efficiency_Video_Coding">HEVC/H.265</a>, <a href="https://en.wikipedia.org/wiki/VP9">VP9</a>, <a href="https://en.wikipedia.org/wiki/AV1">AV1</a>), hardware acceleration, and quality metrics (<a href="https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio">PSNR</a>, <a href="https://en.wikipedia.org/wiki/Structural_similarity">SSIM</a>, <strong><a href="https://en.wikipedia.org/wiki/Video_Multimethod_Assessment_Fusion">VMAF</a></strong>).</div>
+    </li>
+    <li class="timeline-today">
+      <span class="timeline-year">Today</span>
+      <div class="timeline-content">Powers a huge portion of the world's media infrastructure — browsers, streaming platforms, broadcast pipelines, mobile apps, and more. See the <a href="https://trac.ffmpeg.org/wiki/Projects">projects using FFmpeg</a> wiki page.</div>
+    </li>
+  </ol>
+
+  <h3>What does the name mean?</h3>
+  <p><strong>"MPEG"</strong> refers to the <a href="https://en.wikipedia.org/wiki/Moving_Picture_Experts_Group">Moving Picture Experts Group</a>, the standards body behind MPEG-1, MPEG-2, MPEG-4 and many of the video formats FFmpeg was originally built to handle. The <strong>"FF"</strong> part is more interesting — for years there was lively speculation on the mailing list about what those letters really meant, until Fabrice Bellard himself stepped in to settle it: in <a href="https://ffmpeg.org/pipermail/ffmpeg-devel/2006-February/010315.html">a 2006 ffmpeg-devel post</a> he confirmed the original meaning is simply <em>"Fast Forward"</em>, the playback-control symbol on tape decks and remotes.</p>
+
+  <div class="callout info"><strong>Fun fact:</strong> the project's mascot is a stylized <em>zigzag</em> pattern derived from a <a href="https://en.wikipedia.org/wiki/JPEG#Encoding">zigzag scan</a> used in JPEG/MPEG block encoding.</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="install">
+  <h2>3. Installing it</h2>
+  <p>FFmpeg ships as a single executable. Pick the route for your platform — the rest of this guide uses the same commands across all of them.</p>
+
+  <h3>Windows</h3>
+  <ol>
+    <li>Go to <a href="https://www.gyan.dev/ffmpeg/builds/">gyan.dev/ffmpeg/builds</a> — the recommended Windows build provider (also linked from the official <a href="https://ffmpeg.org/download.html">ffmpeg.org/download</a> page). The page offers two build streams: a <strong>release</strong> build (based on the latest stable FFmpeg release — recommended for most users) and a <strong>git master</strong> build (built from the development branch — gets new features and fixes earlier, but slightly less battle-tested).</li>
+    <li>Pick a build (see the table below), download the <code>.7z</code> or <code>.zip</code>, and unzip it to a folder of your choice.</li>
+    <li>Add the unzipped <code>ffmpeg/bin</code> folder to your <strong>PATH</strong> environment variable — this lets you run <code>ffmpeg</code> directly from any <code>cmd</code> or PowerShell window, without having to type its full path each time.</li>
+  </ol>
+
+  <h4>Essentials vs Full — which build do I want?</h4>
+  <table>
+    <tr><th>Build</th><th>Size</th><th>Includes</th><th>Use it when…</th></tr>
+    <tr>
+      <td><strong>Essentials</strong></td>
+      <td>~30&nbsp;MB</td>
+      <td>The common codecs (H.264/x264, H.265/x265, AAC, Opus, VP9, AV1) and basic filters. No GPL-only or research libraries.</td>
+      <td>You just want to convert / cut / capture / play files. 90% of users.</td>
+    </tr>
+    <tr>
+      <td><strong>Full</strong></td>
+      <td>~150&nbsp;MB</td>
+      <td>Everything in Essentials <em>plus</em> extras like <code>libvmaf</code>, <code>libtensorflow</code>, <code>frei0r</code>, <code>chromaprint</code>, additional decoders and analyzers.</td>
+      <td>VMAF, ML-based filters, or any of the niche libraries are needed.</td>
+    </tr>
+  </table>
+
+  <h3>Linux &amp; macOS</h3>
+  <p>FFmpeg is available through every major package manager (apt, dnf, pacman, Homebrew, MacPorts, …). For install instructions per distro and Mac, plus source builds and nightly releases, see the official downloads page at <a href="https://ffmpeg.org/download.html">ffmpeg.org/download</a>.</p>
+
+  <div class="callout info"><strong>Verify the install:</strong> run <code>ffmpeg -version</code>. If it prints a version banner, you're set. The configuration line tells you which features your build supports (e.g. <code>--enable-libvmaf</code>, <code>--enable-nvenc</code>) — handy when a feature later seems missing.</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="mental">
+  <h2>4. The mental model</h2>
+  <p>Every FFmpeg command reads roughly the same way:</p>
+<pre><code>ffmpeg [global opts]  -i INPUT  [input opts]  [filters]  [output opts]  OUTPUT</code></pre>
+  <ul class="tight">
+    <li><code>-i</code> introduces an input. You can have <strong>multiple inputs</strong> (e.g. video + audio + reference for VMAF).</li>
+    <li>Options that come <em>before</em> <code>-i</code> apply to the input. Options <em>after</em> all inputs apply to the output.</li>
+    <li>The <strong>output filename comes last</strong>. No flag — just the path.</li>
+  </ul>
+  <div class="callout"><strong>Order matters!</strong> <code>-ss 30 -i input.mp4</code> seeks before decoding (fast). <code>-i input.mp4 -ss 30</code> seeks after decoding (slow but precise).</div>
+  <div class="callout info"><strong>Note:</strong> not every command needs an output file. Replacing the output with <code>-f null -</code> tells FFmpeg to process the input but throw the result away. Useful when you only care about the side effects — analysis logs (VMAF, cropdetect), validating a file, or testing a filter graph without writing anything to disk.</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="flags">
+  <h2>5. Flag cheat-sheet</h2>
+  <table>
+    <tr><th>Flag</th><th>What it does</th><th>Example</th></tr>
+    <tr><td><code>-i</code></td><td>Input file or device</td><td><code>-i input.mp4</code></td></tr>
+    <tr><td><code>-c:v</code></td><td>Video codec</td><td><code>-c:v libx264</code></td></tr>
+    <tr><td><code>-c:a</code></td><td>Audio codec</td><td><code>-c:a aac</code></td></tr>
+    <tr><td><code>-c copy</code></td><td>Stream copy (no re-encode)</td><td><code>-c copy</code></td></tr>
+    <tr><td><code>-b:v</code> / <code>-b:a</code></td><td>Video / audio bitrate</td><td><code>-b:v 2500k</code></td></tr>
+    <tr><td><code>-s</code></td><td>Resolution</td><td><code>-s 1920x1080</code></td></tr>
+    <tr><td><code>-r</code></td><td>Framerate (FPS)</td><td><code>-r 60</code></td></tr>
+    <tr><td><code>-pix_fmt</code></td><td>Pixel format</td><td><code>-pix_fmt yuv420p</code></td></tr>
+    <tr><td><code>-ac</code></td><td>Audio channel count</td><td><code>-ac 1</code> (mono)</td></tr>
+    <tr><td><code>-t</code></td><td>Duration</td><td><code>-t 30</code> (30 seconds)</td></tr>
+    <tr><td><code>-ss</code> / <code>-to</code></td><td>Seek to / stop at</td><td><code>-ss 00:01:00 -to 00:01:30</code></td></tr>
+    <tr><td><code>-vf</code></td><td>Video filter chain</td><td><code>-vf crop=500:500</code></td></tr>
+    <tr><td><code>-filter_complex</code></td><td>Multi-input filter graph</td><td><code>-filter_complex hstack=inputs=2</code></td></tr>
+    <tr><td><code>-vframes</code></td><td>Number of video frames to write</td><td><code>-vframes 1</code></td></tr>
+    <tr><td><code>-y</code></td><td>Overwrite output without asking</td><td><code>-y</code></td></tr>
+    <tr><td><code>-hide_banner</code></td><td>Quieter output</td><td><code>-hide_banner</code></td></tr>
+  </table>
+</section>
+
+<!-- ============================================================ -->
+<section id="first">
+  <h2>6. First commands</h2>
+
+  <h3>Inspect a file</h3>
+<pre><code>ffprobe -i input.mp4 -hide_banner</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>ffprobe</code></td><td>Companion tool to FFmpeg that reads media files and prints information about them.</td></tr>
+      <tr><td><code>-i input.mp4</code></td><td>The file to inspect.</td></tr>
+      <tr><td><code>-hide_banner</code></td><td>Skip the build/version banner so the output focuses on the file's metadata.</td></tr>
+    </table>
+  </div>
+</details>
+
+  <h3>Convert to a different container / codec</h3>
+<pre><code>ffmpeg -i input.avi -c:v libx264 -c:a aac output.mp4</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>-i input.avi</code></td><td>Source file. The container (<code>.avi</code>) is detected automatically.</td></tr>
+      <tr><td><code>-c:v libx264</code></td><td>Video codec — H.264 via the libx264 encoder.</td></tr>
+      <tr><td><code>-c:a aac</code></td><td>Audio codec — AAC.</td></tr>
+      <tr><td><code>output.mp4</code></td><td>Output filename. The <code>.mp4</code> extension determines the container.</td></tr>
+    </table>
+  </div>
+</details>
+
+  <h3>Resize to a specific resolution</h3>
+<pre><code>ffmpeg -i input.mp4 -vf scale=1280:720 -b:v 1500k output_720p.mp4</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>-i input.mp4</code></td><td>Input file.</td></tr>
+      <tr><td><code>-vf scale=1280:720</code></td><td>Video filter: resize the picture to 1280×720.</td></tr>
+      <tr><td><code>-b:v 1500k</code></td><td>Target video bitrate — 1.5&nbsp;Mbps.</td></tr>
+      <tr><td><code>output_720p.mp4</code></td><td>Output file.</td></tr>
+    </table>
+  </div>
+</details>
+
+  <h3>Extract the audio track</h3>
+<pre><code>ffmpeg -i input.mp4 -q:a 0 -map a audio.wav</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>-i input.mp4</code></td><td>Input file (with both video and audio).</td></tr>
+      <tr><td><code>-q:a 0</code></td><td>Highest audio quality (variable bitrate, 0 = best, 9 = worst).</td></tr>
+      <tr><td><code>-map a</code></td><td>Pick all audio streams from the input; drop video.</td></tr>
+      <tr><td><code>audio.wav</code></td><td>Audio-only output file.</td></tr>
+    </table>
+  </div>
+</details>
+
+  <h3>Remove the audio track</h3>
+<pre><code>ffmpeg -i input.mp4 -c copy -an output.mp4</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>-i input.mp4</code></td><td>Input file.</td></tr>
+      <tr><td><code>-c copy</code></td><td>Copy streams without re-encoding — fast and lossless.</td></tr>
+      <tr><td><code>-an</code></td><td>Drop the audio (a = audio, n = none).</td></tr>
+      <tr><td><code>output.mp4</code></td><td>Video-only output file.</td></tr>
+    </table>
+  </div>
+</details>
+</section>
+
+<!-- ============================================================ -->
+<section id="capture">
+  <h2>7. Capturing from a device <span class="pill">windows</span></h2>
+
+  <h3>List capture devices</h3>
+<pre><code>ffmpeg -list_devices true -f dshow -i dummy</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>-list_devices true</code></td><td>Print available capture devices instead of recording.</td></tr>
+      <tr><td><code>-f dshow</code></td><td>Use Windows <strong>DirectShow</strong> as the input format.</td></tr>
+      <tr><td><code>-i dummy</code></td><td>Required placeholder input — not actually read.</td></tr>
+    </table>
+  </div>
+</details>
+
+  <h3>Show options for one device</h3>
+  <p>Replace <code>Video Capture Device</code> / <code>Audio Capture Device</code> below with the exact name <code>-list_devices</code> printed for your hardware (e.g. a webcam, capture card, or HDMI grabber).</p>
+<pre><code>ffmpeg -list_options true -f dshow -i video="Video Capture Device"
+ffmpeg -list_options true -f dshow -i audio="Audio Capture Device"</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>-list_options true</code></td><td>Print supported settings (resolutions, framerates, pixel formats) for the selected device.</td></tr>
+      <tr><td><code>-f dshow</code></td><td>DirectShow input.</td></tr>
+      <tr><td><code>-i video="…"</code> / <code>-i audio="…"</code></td><td>Device to query — video or audio variant.</td></tr>
+    </table>
+  </div>
+</details>
+
+  <h3>Record 30 seconds of HDMI input (video + audio, GPU-encoded)</h3>
+<pre><code>ffmpeg -rtbufsize 150M -f dshow ^
+  -i video="Video Capture Device":audio="Audio Capture Device" ^
+  -c:v h264_nvenc -s 1920x1080 -r 60 -b:v 2500k -pix_fmt yuv420p ^
+  -ac 1 -b:a 128k -profile:a aac_main ^
+  -t 30 "C:\temp\recording.mp4"</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>-rtbufsize 150M</code></td><td>Real-time input buffer — prevents frame drops at high data rates.</td></tr>
+      <tr><td><code>-f dshow</code></td><td>DirectShow input format.</td></tr>
+      <tr><td><code>-i video=…:audio=…</code></td><td>Combined video + audio source — both grabbed from the same dshow command.</td></tr>
+      <tr><td><code>-c:v h264_nvenc</code></td><td>NVIDIA hardware H.264 encoder.</td></tr>
+      <tr><td><code>-s 1920x1080</code></td><td>Output resolution.</td></tr>
+      <tr><td><code>-r 60</code></td><td>Framerate — 60 fps.</td></tr>
+      <tr><td><code>-b:v 2500k</code></td><td>Target video bitrate — 2.5 Mbps.</td></tr>
+      <tr><td><code>-pix_fmt yuv420p</code></td><td>Pixel format — broad-compat 4:2:0 chroma.</td></tr>
+      <tr><td><code>-ac 1</code></td><td>One audio channel (mono).</td></tr>
+      <tr><td><code>-b:a 128k</code></td><td>Audio bitrate — 128 kbps.</td></tr>
+      <tr><td><code>-profile:a aac_main</code></td><td>AAC profile.</td></tr>
+      <tr><td><code>-t 30</code></td><td>Stop after 30 seconds.</td></tr>
+      <tr><td><code>"C:\temp\recording.mp4"</code></td><td>Output file path.</td></tr>
+    </table>
+  </div>
+</details>
+  <div class="callout"><strong>What's happening:</strong> dshow input → NVENC h264 video at 1080p60 / 2.5 Mbps → mono AAC audio at 128 kbps → stop after 30s.</div>
+
+  <p>Real device names tend to be longer and include the manufacturer / port index. As an example, a Magewell Pro Capture Quad HDMI card with the second port selected might appear in <code>-list_devices</code> as <code>Video (00-1 Pro Capture Quad HDMI)</code>, and the same command would look like:</p>
+<pre><code>ffmpeg -rtbufsize 150M -f dshow ^
+  -i video="Video (00-1 Pro Capture Quad HDMI)":audio="Audio (00-1 Pro Capture Quad HDMI)" ^
+  -c:v h264_nvenc -s 1920x1080 -r 60 -b:v 2500k -pix_fmt yuv420p ^
+  -ac 1 -b:a 128k -profile:a aac_main ^
+  -t 30 "C:\temp\recording.mp4"</code></pre>
+<details class="cmd-explain">
+  <summary>Explain the device-name part</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>Video (00-1 Pro Capture Quad HDMI)</code></td><td>The exact device name as printed by <code>-list_devices</code>, including the parentheses. Must be quoted in full because of the spaces.</td></tr>
+      <tr><td><code>00-1</code></td><td>Card / port index. <code>00</code> = the first card in the system; <code>-1</code> = its second port (zero-indexed). A four-port capture card would expose <code>00-0</code> through <code>00-3</code>.</td></tr>
+      <tr><td><code>Pro Capture Quad HDMI</code></td><td>Vendor / model name as the driver registers it.</td></tr>
+      <tr><td><code>Audio (00-1 Pro Capture Quad HDMI)</code></td><td>The audio side of the same physical input — same manufacturer + port index, but registered as an audio device. Many capture cards expose video and audio as two separate dshow devices that you have to combine yourself.</td></tr>
+    </table>
+    <p style="margin: 8px 0 0; font-size: 0.86rem;">All other flags work identically to the explainer for the previous command.</p>
+  </div>
+</details>
+
+  <h3>Snap one frame from a webcam</h3>
+<pre><code>ffmpeg -f dshow -i video="Integrated Camera" -vframes 1 output.png</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>-f dshow</code></td><td>DirectShow input.</td></tr>
+      <tr><td><code>-i video="Integrated Camera"</code></td><td>Built-in laptop webcam (the standard Windows device name).</td></tr>
+      <tr><td><code>-vframes 1</code></td><td>Capture exactly one frame, then stop.</td></tr>
+      <tr><td><code>output.png</code></td><td>Save the still as a PNG.</td></tr>
+    </table>
+  </div>
+</details>
+</section>
+
+<!-- ============================================================ -->
+<section id="cut-crop">
+  <h2>8. Cut, crop, snapshot</h2>
+
+  <h3>Cut without re-encoding (keyframe-precision, super fast)</h3>
+<pre><code>ffmpeg -ss 00:02:29 -to 00:02:39 -i input.mp4 -c copy clip.mp4</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>-ss 00:02:29</code></td><td>Seek to start time. Placed <em>before</em> <code>-i</code> = fast keyframe-aligned input seek.</td></tr>
+      <tr><td><code>-to 00:02:39</code></td><td>Stop at this absolute timestamp.</td></tr>
+      <tr><td><code>-i input.mp4</code></td><td>Source file.</td></tr>
+      <tr><td><code>-c copy</code></td><td>Copy streams as-is, no re-encoding — instantaneous.</td></tr>
+      <tr><td><code>clip.mp4</code></td><td>Output. Cut points snap to the nearest keyframe.</td></tr>
+    </table>
+  </div>
+</details>
+
+  <h3>Cut with re-encoding (frame-precise)</h3>
+<pre><code>ffmpeg -i input.mp4 -ss 180 -to 190 -c:v libx264 -crf 0 clip_precise.mp4</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>-i input.mp4</code></td><td>Source file.</td></tr>
+      <tr><td><code>-ss 180</code></td><td>Seek to t=180s. Placed <em>after</em> <code>-i</code> = decode-and-discard until that frame (slower, exact).</td></tr>
+      <tr><td><code>-to 190</code></td><td>Stop at t=190s.</td></tr>
+      <tr><td><code>-c:v libx264</code></td><td>Re-encode video with x264 (required for frame-exact cuts).</td></tr>
+      <tr><td><code>-crf 0</code></td><td>Lossless quality (CRF 0).</td></tr>
+      <tr><td><code>clip_precise.mp4</code></td><td>Output.</td></tr>
+    </table>
+  </div>
+</details>
+
+  <h3>Crop a 500×500 area starting at (100,100)</h3>
+<pre><code>ffmpeg -i input.mp4 -filter:v crop=500:500:100:100 cropped_corner.mp4</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>-i input.mp4</code></td><td>Source file.</td></tr>
+      <tr><td><code>-filter:v crop=W:H:X:Y</code></td><td>Video filter. Here W=500, H=500, X=100, Y=100 — a 500×500 box starting 100px from the top-left.</td></tr>
+      <tr><td><code>cropped_corner.mp4</code></td><td>Output.</td></tr>
+    </table>
+  </div>
+</details>
+
+  <h3>Crop 500×500 from the center</h3>
+<pre><code>ffmpeg -i input.mp4 -filter:v crop=500:500 cropped_center.mp4</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>-filter:v crop=500:500</code></td><td>Same crop filter, but with X and Y omitted — defaults to centering the crop window in the frame.</td></tr>
+      <tr><td><code>cropped_center.mp4</code></td><td>Output.</td></tr>
+    </table>
+  </div>
+</details>
+
+  <h3>Detect black bars (so you know what to crop)</h3>
+<pre><code>ffmpeg -i input.mp4 -vf cropdetect=limit=120 -f null -</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>-i input.mp4</code></td><td>Source file.</td></tr>
+      <tr><td><code>-vf cropdetect=limit=120</code></td><td>Analyze each frame for black borders. <code>limit</code> = brightness threshold (0–255); pixels below count as "black".</td></tr>
+      <tr><td><code>-f null -</code></td><td>Discard the output stream — we only care about the suggested crop values printed to the log.</td></tr>
+    </table>
+  </div>
+</details>
+
+  <h3>Side-by-side comparison of two videos</h3>
+<pre><code>ffmpeg -i video_left.mp4 -i video_right.mp4 -filter_complex hstack=inputs=2 sidebyside.mp4</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>-i video_left.mp4</code></td><td>First input — placed on the left.</td></tr>
+      <tr><td><code>-i video_right.mp4</code></td><td>Second input — placed on the right.</td></tr>
+      <tr><td><code>-filter_complex hstack=inputs=2</code></td><td>Horizontally stack the two inputs. (For top/bottom use <code>vstack</code>.)</td></tr>
+      <tr><td><code>sidebyside.mp4</code></td><td>Combined output.</td></tr>
+    </table>
+  </div>
+</details>
+
+  <h3>Take a snapshot (first I-frame at second 1)</h3>
+<pre><code>ffmpeg -ss 1 -i input.mp4 -vf select="eq(pict_type\,I)" -vframes 1 snapshot.jpg</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>-ss 1</code></td><td>Skip the first 1 second of the input (fast seek).</td></tr>
+      <tr><td><code>-i input.mp4</code></td><td>Source file.</td></tr>
+      <tr><td><code>-vf select="eq(pict_type\,I)"</code></td><td>Keep only I-frames (keyframes). The backslash escapes the comma so it's not parsed as a filter separator.</td></tr>
+      <tr><td><code>-vframes 1</code></td><td>Take exactly one matching frame.</td></tr>
+      <tr><td><code>snapshot.jpg</code></td><td>Save as JPG.</td></tr>
+    </table>
+  </div>
+</details>
+</section>
+
+<!-- ============================================================ -->
+<section id="frames">
+  <h2>9. Working with individual frames</h2>
+  <div class="callout info"><strong>Heads up:</strong> FFmpeg numbers frames starting at <code>0</code>. So if you want frames 1, 60, 120, 240 — ask for 0, 59, 119, 239.</div>
+
+  <h3>Extract specific frames as BMP</h3>
+<pre><code>ffmpeg -hide_banner -i input.mp4 ^
+  -vf select="eq(n\,0)+eq(n\,59)+eq(n\,119)+eq(n\,239)" ^
+  -vframes 4 -fps_mode passthrough -y "frame_%d.bmp"</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>-hide_banner</code></td><td>Skip the build/version banner.</td></tr>
+      <tr><td><code>-i input.mp4</code></td><td>Source file.</td></tr>
+      <tr><td><code>-vf select="eq(n\,0)+eq(n\,59)+…"</code></td><td>
+        Select specific frames by zero-indexed number. Breaking the expression down:
+        <ul style="margin: 6px 0 0; padding-left: 18px;">
+          <li><code>select=…</code> — keep only frames where the inner expression is true.</li>
+          <li><code>eq(a, b)</code> — equality function; returns 1 if <code>a</code> equals <code>b</code>, otherwise 0.</li>
+          <li><code>n</code> — built-in variable holding the current frame's zero-indexed number (0 for the first frame, 1 for the second, …).</li>
+          <li><code>\,</code> — a comma escaped with a backslash. Inside FFmpeg's filter syntax a bare <code>,</code> is a filter separator, so the comma between <code>eq</code>'s arguments must be escaped.</li>
+          <li><code>+</code> — logical OR; joins multiple conditions so several frames match.</li>
+        </ul>
+        So <code>eq(n\,0)</code> means "this frame is frame&nbsp;0" (the very first one), <code>eq(n\,59)</code> means "this frame is frame&nbsp;59" (the 60th one), and the full expression keeps only frames 0, 59, 119, and 239.
+      </td></tr>
+      <tr><td><code>-vframes 4</code></td><td>Stop after writing 4 frames.</td></tr>
+      <tr><td><code>-fps_mode passthrough</code></td><td>Preserve input timestamps (don't try to fill gaps).</td></tr>
+      <tr><td><code>-y</code></td><td>Overwrite outputs without asking.</td></tr>
+      <tr><td><code>"frame_%d.bmp"</code></td><td>Output pattern. <code>%d</code> = sequence number (1, 2, 3, 4).</td></tr>
+    </table>
+  </div>
+</details>
+
+  <h3>Build a video from a sequence of images</h3>
+<pre><code>ffmpeg -i "frame_%d.bmp" -y -c:v libx264 -pix_fmt yuv420p -crf 16 output.mp4</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>-i "frame_%d.bmp"</code></td><td>Input image sequence. <code>%d</code> matches numbered frames (frame_1.bmp, frame_2.bmp, …).</td></tr>
+      <tr><td><code>-y</code></td><td>Overwrite output without asking.</td></tr>
+      <tr><td><code>-c:v libx264</code></td><td>Encode with x264 (H.264).</td></tr>
+      <tr><td><code>-pix_fmt yuv420p</code></td><td>Universal-compat pixel format.</td></tr>
+      <tr><td><code>-crf 16</code></td><td>High visual quality (lower CRF = better; range 0–51).</td></tr>
+      <tr><td><code>output.mp4</code></td><td>Resulting video file.</td></tr>
+    </table>
+  </div>
+</details>
+
+  <h3>Seek + step a few frames forward</h3>
+<pre><code>ffmpeg -hide_banner -ss 249.3 -i input.mp4 -vf select="eq(n\,2)" -vframes 1 -y snapshot.png</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>-ss 249.3</code></td><td>Seek to 249.3 seconds before decoding (fast).</td></tr>
+      <tr><td><code>-i input.mp4</code></td><td>Source file.</td></tr>
+      <tr><td><code>-vf select="eq(n\,2)"</code></td><td>From the seek point, advance 2 frames forward and select that one.</td></tr>
+      <tr><td><code>-vframes 1</code></td><td>Take exactly one frame.</td></tr>
+      <tr><td><code>-y snapshot.png</code></td><td>Overwrite output as PNG.</td></tr>
+    </table>
+  </div>
+</details>
+</section>
+
+<!-- ============================================================ -->
+<section id="gpu">
+  <h2>10. CPU vs GPU encoding</h2>
+  <p>Encoding is the slow part. If your GPU has a hardware encoder, you can offload it with one flag swap.</p>
+  <table>
+    <tr><th>Hardware</th><th>H.264 codec</th><th>H.265 codec</th></tr>
+    <tr><td>CPU (any)</td><td><code>libx264</code></td><td><code>libx265</code></td></tr>
+    <tr><td>NVIDIA</td><td><code>h264_nvenc</code></td><td><code>hevc_nvenc</code></td></tr>
+    <tr><td>AMD</td><td><code>h264_amf</code></td><td><code>hevc_amf</code></td></tr>
+    <tr><td>Intel QuickSync</td><td><code>h264_qsv</code></td><td><code>hevc_qsv</code></td></tr>
+  </table>
+<pre><code>ffmpeg -i input.mp4 -c:v libx264     output.mp4   # CPU
+ffmpeg -i input.mp4 -c:v h264_amf    output.mp4   # AMD GPU
+ffmpeg -i input.mp4 -c:v h264_nvenc  output.mp4   # NVIDIA GPU</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>-i input.mp4</code></td><td>Source file (same in all three).</td></tr>
+      <tr><td><code>-c:v libx264</code></td><td>Software CPU encoder. Best quality per bit, slowest.</td></tr>
+      <tr><td><code>-c:v h264_amf</code></td><td>AMD GPU H.264 encoder (Advanced Media Framework).</td></tr>
+      <tr><td><code>-c:v h264_nvenc</code></td><td>NVIDIA GPU H.264 encoder (NVENC).</td></tr>
+      <tr><td><code>output.mp4</code></td><td>Output file.</td></tr>
+    </table>
+  </div>
+</details>
+  <div class="callout ok"><strong>Rule of thumb:</strong> CPU = best quality per bit, slower. GPU = much faster, slightly larger files at the same visual quality. For real-time capture, always use GPU.</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="metadata">
+  <h2>11. Metadata and FFprobe</h2>
+
+  <h3>Add custom metadata fields</h3>
+  <p>You can attach standard tags (<code>title</code>, <code>artist</code>, <code>comment</code>, <code>year</code>) or arbitrary key/value pairs of your own. With <code>-c copy</code> the streams aren't re-encoded — only the container's tag table is rewritten, so this is essentially instantaneous.</p>
+<pre><code>ffmpeg -i input.mp4 ^
+  -metadata title="My Recording" ^
+  -metadata artist="Studio Team" ^
+  -metadata comment="Original capture, take 3" ^
+  -metadata custom_field="value-of-your-choice" ^
+  -movflags +use_metadata_tags -c copy output.mp4</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>-i input.mp4</code></td><td>Source file.</td></tr>
+      <tr><td><code>-metadata title="…"</code></td><td>Set / override the standard <code>title</code> tag.</td></tr>
+      <tr><td><code>-metadata artist="…"</code></td><td>Standard <code>artist</code> tag.</td></tr>
+      <tr><td><code>-metadata comment="…"</code></td><td>Standard <code>comment</code> tag.</td></tr>
+      <tr><td><code>-metadata custom_field="…"</code></td><td>An arbitrary key/value pair you make up. Useful for tagging files with project- or workflow-specific info.</td></tr>
+      <tr><td><code>-movflags +use_metadata_tags</code></td><td>Required for non-standard tags to be preserved in MP4 / MOV containers.</td></tr>
+      <tr><td><code>-c copy</code></td><td>Don't re-encode — just rewrite the container's tag table.</td></tr>
+      <tr><td><code>output.mp4</code></td><td>Tagged output file.</td></tr>
+    </table>
+  </div>
+</details>
+
+  <h3>Read metadata back</h3>
+<pre><code>ffmpeg -i output.mp4 -hide_banner</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>-i output.mp4</code></td><td>The file to inspect. With no output specified, FFmpeg just prints what it knows about the input and stops.</td></tr>
+      <tr><td><code>-hide_banner</code></td><td>Skip the build/version header so the metadata stands out.</td></tr>
+    </table>
+  </div>
+</details>
+
+  <h3>Per-frame info with ffprobe</h3>
+<pre><code>ffprobe -i input.mp4 -show_frames</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>ffprobe</code></td><td>Inspector tool — prints structured info about a media file.</td></tr>
+      <tr><td><code>-i input.mp4</code></td><td>File to analyze.</td></tr>
+      <tr><td><code>-show_frames</code></td><td>Dump one block per frame: picture type (I/P/B), PTS, size, pixel format, and more.</td></tr>
+    </table>
+  </div>
+</details>
+  <p>Each frame block tells you the picture type (I/P/B), PTS, size, pixel format, etc. — useful when you're debugging encoder behaviour or hunting a specific keyframe.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="vmaf">
+  <h2>12. VMAF — measuring video quality <span class="pill">netflix</span></h2>
+  <p><strong>VMAF</strong> (Video Multimethod Assessment Fusion) is Netflix's perceptual quality metric. Score range: <strong>0–100</strong>. Higher = closer to the reference. It correlates with what humans actually perceive much better than PSNR alone.</p>
+
+  <h3>Prerequisites</h3>
+  <ul class="tight">
+    <li>An FFmpeg build compiled with <code>--enable-libvmaf</code>. Check with: <code>ffmpeg -h filter=libvmaf</code></li>
+    <li>A VMAF model file, e.g. <code>vmaf_v0.6.1.json</code> (available from the <a href="https://github.com/Netflix/vmaf">Netflix/vmaf GitHub</a>).</li>
+    <li>Two videos to compare: a <em>distorted</em> one (e.g. a re-encoded version) and the <em>original/reference</em>.</li>
+  </ul>
+
+  <div class="callout"><strong>Important:</strong> the <em>reference (original)</em> video must be the <strong>second</strong> input to FFmpeg. Distorted = first input.</div>
+
+  <h3>Basic VMAF score</h3>
+<pre><code>ffmpeg -i distorted.mp4 -i original.mp4 ^
+  -lavfi libvmaf=model_path="C\\:/ffmpeg/model/vmaf_v0.6.1.json" -f null -</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>-i distorted.mp4</code></td><td>First input — the encode being scored.</td></tr>
+      <tr><td><code>-i original.mp4</code></td><td>Second input — the reference (must be the second input).</td></tr>
+      <tr><td><code>-lavfi libvmaf=…</code></td><td>Apply the libvmaf filter to compare the two inputs.</td></tr>
+      <tr><td><code>model_path="C\\:/…/vmaf_v0.6.1.json"</code></td><td>Path to the VMAF model file. Windows colons are escaped as <code>\\:</code> because <code>:</code> is a filter-graph separator.</td></tr>
+      <tr><td><code>-f null -</code></td><td>Don't write an output file — only the score in the log matters.</td></tr>
+    </table>
+  </div>
+</details>
+
+  <h3>Save scores to CSV</h3>
+<pre><code>ffmpeg -i distorted.mp4 -i original.mp4 ^
+  -lavfi libvmaf=model_path="C\\:/ffmpeg/model/vmaf_v0.6.1.json":log_path="C\\:/out/vmaf.csv":log_fmt=csv ^
+  -f null -</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>model_path="…"</code></td><td>VMAF model file (same as basic).</td></tr>
+      <tr><td><code>log_path="C\\:/out/vmaf.csv"</code></td><td>Where to write the per-frame log.</td></tr>
+      <tr><td><code>log_fmt=csv</code></td><td>Log format. <code>csv</code> is easiest to import into a spreadsheet; <code>json</code> and <code>xml</code> also work.</td></tr>
+    </table>
+  </div>
+</details>
+
+  <h3>Faster scan (subsample every N frames)</h3>
+<pre><code>ffmpeg -i distorted.mp4 -i original.mp4 ^
+  -lavfi libvmaf=model_path="C\\:/ffmpeg/model/vmaf_v0.6.1.json":log_path="C\\:/out/vmaf.csv":log_fmt=csv:n_subsample=20 ^
+  -f null -</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>n_subsample=20</code></td><td>Score every 20th frame instead of every frame — roughly 20× faster, with minimal impact on the aggregate score.</td></tr>
+    </table>
+  </div>
+</details>
+
+  <h3>VMAF + SSIM + PSNR all in one pass</h3>
+<pre><code>ffmpeg -i distorted.mp4 -i original.mp4 ^
+  -lavfi libvmaf=model_path="C\\:/ffmpeg/model/vmaf_v0.6.1.json":log_path="C\\:/out/vmaf.csv":log_fmt=csv:n_subsample=20:ssim=true:psnr=true ^
+  -f null -</code></pre>
+<details class="cmd-explain">
+  <summary>Explain this command</summary>
+  <div class="cmd-explain-body">
+    <table>
+      <tr><td><code>ssim=true</code></td><td>Also compute SSIM (Structural Similarity) for every frame.</td></tr>
+      <tr><td><code>psnr=true</code></td><td>Also compute PSNR (Peak Signal-to-Noise Ratio).</td></tr>
+    </table>
+    <p style="margin: 8px 0 0; font-size: 0.86rem;">All three metrics land in the same CSV alongside the VMAF columns.</p>
+  </div>
+</details>
+
+  <h3>Reading the results</h3>
+  <table>
+    <tr><th>VMAF score</th><th>Rough interpretation</th></tr>
+    <tr><td>95–100</td><td>Visually indistinguishable from source</td></tr>
+    <tr><td>80–94</td><td>Excellent — most viewers won't notice impairments</td></tr>
+    <tr><td>60–79</td><td>Good — some artifacts visible on close inspection</td></tr>
+    <tr><td>40–59</td><td>Fair — noticeable degradation</td></tr>
+    <tr><td>&lt; 40</td><td>Poor — clearly degraded</td></tr>
+  </table>
+
+  <div class="callout info"><strong>Gotchas:</strong>
+    <ul class="tight">
+      <li>Both inputs must have the <strong>same resolution and framerate</strong>. Pre-scaling or resampling may be needed.</li>
+      <li>Frame counts should match — drift between inputs causes sync issues that distort the score.</li>
+      <li>The Windows path escaping (<code>C\\:/ffmpeg/...</code>) is required because the colon is a filter-graph separator.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="links">
+  <h2>13. Useful links</h2>
+  <h3>Official</h3>
+  <ul class="tight">
+    <li><a href="https://ffmpeg.org/">FFmpeg homepage</a></li>
+    <li><a href="https://ffmpeg.org/documentation.html">Official docs</a></li>
+    <li><a href="https://ffmpeg.org/ffmpeg-filters.html">FFmpeg filters reference</a></li>
+    <li><a href="https://trac.ffmpeg.org/wiki">FFmpeg wiki</a></li>
+  </ul>
+  <h3>VMAF</h3>
+  <ul class="tight">
+    <li><a href="https://github.com/Netflix/vmaf">Netflix/vmaf on GitHub</a></li>
+    <li><a href="https://github.com/Netflix/vmaf/blob/master/resource/doc/ffmpeg.md">Netflix's libvmaf + FFmpeg guide</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Video_Multimethod_Assessment_Fusion">VMAF on Wikipedia</a></li>
+    <li><a href="https://netflixtechblog.com/toward-a-practical-perceptual-video-quality-metric-653f208b9652">Netflix Tech Blog: Toward a Practical Perceptual Video Quality Metric</a></li>
+  </ul>
+  <h3>Hardware encoding</h3>
+  <ul class="tight">
+    <li><a href="https://developer.nvidia.com/video-encode-and-decode-gpu-support-matrix-new">NVIDIA GPU encode/decode support matrix</a></li>
+  </ul>
+</section>
+
+<!-- ============================================================ -->
+<section id="appendix">
+  <h2>A. Appendix</h2>
+  <p>Additional reference material. Each appendix entry is self-contained — useful when you need a deeper look at a specific topic beyond the core walkthrough above.</p>
+
+  <h3 id="appendix-errors">A.1 Common error messages</h3>
+  <p>A reference for the FFmpeg errors you're most likely to bump into, with what they actually mean and the usual fix.</p>
+
+  <table class="errors-table">
+    <colgroup>
+      <col style="width: 22%">
+      <col style="width: 40%">
+      <col style="width: 38%">
+    </colgroup>
+    <tr><th>Message</th><th>What it means</th><th>Typical fix</th></tr>
+    <tr>
+      <td><code>moov atom not found</code></td>
+      <td>The MP4 file is missing its index — almost always because the recording was interrupted before being properly finalized.</td>
+      <td>Recover with <a href="https://github.com/ponchio/untrunc">untrunc</a> using a healthy reference file from the same encoder, or re-record. The file is otherwise unreadable.</td>
+    </tr>
+    <tr>
+      <td><code>Invalid data found when processing input</code></td>
+      <td>FFmpeg can't make sense of the bytes — wrong format detection, corrupted header, or partial download.</td>
+      <td>Force the format with <code>-f &lt;fmt&gt;</code>, or verify the file with <code>ffprobe</code>. Re-download / re-export if the source is bad.</td>
+    </tr>
+    <tr>
+      <td><code>Unknown encoder 'libx264'</code></td>
+      <td>Your FFmpeg build was compiled without that codec library.</td>
+      <td>Switch to a GPL-enabled build (e.g. the gyan.dev "Full" build). See <a href="#install">section 3</a>.</td>
+    </tr>
+    <tr>
+      <td><code>No such filter: 'libvmaf'</code></td>
+      <td>The build doesn't include <code>libvmaf</code>.</td>
+      <td>Use the gyan.dev "Full" build. Confirm with <code>ffmpeg -h filter=libvmaf</code>.</td>
+    </tr>
+    <tr>
+      <td><code>Output #0 does not contain any stream</code></td>
+      <td>Your filter graph or stream-mapping options removed every stream from the output.</td>
+      <td>Check <code>-map</code>, <code>-vn</code>, <code>-an</code> flags. Run without filters first to confirm the input has streams.</td>
+    </tr>
+    <tr>
+      <td><code>Error initializing filter 'X' …</code> / <code>filter 'X' not found</code></td>
+      <td>Filter syntax error — usually a misplaced colon, comma, or unescaped Windows path.</td>
+      <td>On Windows, escape colons in paths inside filter graphs as <code>C\\:/path/...</code>. See <a href="#vmaf">VMAF section</a>.</td>
+    </tr>
+    <tr>
+      <td><code>Conversion failed!</code></td>
+      <td>Generic catch-all printed at the end. The real error is one of the lines above it.</td>
+      <td>Scroll up in the output. Re-run with <code>-loglevel verbose</code> if the cause is unclear.</td>
+    </tr>
+    <tr>
+      <td><code>real-time buffer [...] too full or near too full</code></td>
+      <td>During <code>dshow</code> capture, FFmpeg can't drain the device buffer fast enough.</td>
+      <td>Increase <code>-rtbufsize</code> (e.g. <code>-rtbufsize 256M</code>) or reduce input resolution / framerate.</td>
+    </tr>
+    <tr>
+      <td><code>Permission denied</code> / <code>Operation not permitted</code></td>
+      <td>Output file is locked (open in another app), in a write-protected location, or being overwritten while in use.</td>
+      <td>Close anything that has the file open, or write to a different path. Add <code>-y</code> to overwrite without prompting.</td>
+    </tr>
+    <tr>
+      <td><code>Past duration X too large</code></td>
+      <td>Timestamps are non-monotonic — usually because of a bad input or seek that lands mid-GOP.</td>
+      <td>Add <code>-fflags +genpts</code>, or seek with <code>-ss</code> <em>before</em> <code>-i</code> for keyframe-aligned seeking.</td>
+    </tr>
+    <tr>
+      <td><code>height/width not divisible by 2</code></td>
+      <td>H.264 / H.265 require even dimensions. Common after cropping.</td>
+      <td>Round to even: <code>-vf "scale=trunc(iw/2)*2:trunc(ih/2)*2"</code> or pick a crop with even values.</td>
+    </tr>
+  </table>
+
+  <div class="callout info"><strong>When in doubt:</strong> add <code>-loglevel verbose</code> (or <code>debug</code>) to your command. FFmpeg's default output suppresses the line that actually explains what failed.</div>
+
+  <!-- ===== A.2 Performance tuning & presets ===== -->
+  <h3 id="appendix-perf">A.2 Performance tuning &amp; presets</h3>
+  <p>Encoder speed, file size, and quality form a triangle — you can pick any two. Below are the knobs that actually matter for <code>libx264</code> and <code>libx265</code>, which are the encoders most people use.</p>
+
+  <h4>The <code>-preset</code> flag</h4>
+  <p>Controls how hard the encoder works to find the best compression. Slower presets produce smaller files at the same visual quality, at the cost of CPU time. Output of all presets is <em>decodable everywhere</em>; only the encoder's effort changes.</p>
+
+  <table>
+    <tr><th>Preset</th><th>Relative speed</th><th>File size at same quality</th><th>When to use</th></tr>
+    <tr><td><code>ultrafast</code></td><td>~10× faster than medium</td><td>~1.7× larger</td><td>Live capture, real-time recording.</td></tr>
+    <tr><td><code>superfast</code></td><td>~7×</td><td>~1.5×</td><td>Real-time-ish workflows.</td></tr>
+    <tr><td><code>veryfast</code></td><td>~4×</td><td>~1.25×</td><td>Streaming, fast bulk transcodes. Common live-streaming default.</td></tr>
+    <tr><td><code>faster</code></td><td>~2×</td><td>~1.10×</td><td>Daily-driver fast preset.</td></tr>
+    <tr><td><code>fast</code></td><td>~1.3×</td><td>~1.05×</td><td>Marginal speed gain over medium.</td></tr>
+    <tr><td><code>medium</code> (default)</td><td>1×</td><td>1× (baseline)</td><td>Reasonable balance — the FFmpeg default.</td></tr>
+    <tr><td><code>slow</code></td><td>~0.7×</td><td>~0.95×</td><td>Quality-focused offline encoding.</td></tr>
+    <tr><td><code>slower</code></td><td>~0.4×</td><td>~0.92×</td><td>Archival, master encodes.</td></tr>
+    <tr><td><code>veryslow</code></td><td>~0.2×</td><td>~0.90×</td><td>Maximum compression, when CPU time is free.</td></tr>
+  </table>
+
+  <p class="callout">Numbers are <strong>approximate</strong> and depend heavily on content — see the <a href="https://trac.ffmpeg.org/wiki/Encode/H.264">FFmpeg H.264 encoding wiki</a> for the canonical guidance.</p>
+
+  <h4>CRF vs bitrate</h4>
+  <p>Two ways to tell the encoder how much quality you want:</p>
+  <ul class="tight">
+    <li><strong>CRF (Constant Rate Factor)</strong> — <em>variable</em> bitrate, <em>constant</em> perceptual quality. Best for archival and general delivery. Range <code>0–51</code>; lower = better.
+      <ul>
+        <li><code>0</code> = mathematically lossless (huge files)</li>
+        <li><code>17–18</code> = "visually lossless" for most viewers</li>
+        <li><code>23</code> = libx264 default — good balance</li>
+        <li><code>28</code> = smaller, noticeable artifacts</li>
+        <li><code>32+</code> = clearly degraded</li>
+      </ul>
+    </li>
+    <li><strong>Target bitrate</strong> (<code>-b:v 4M</code>) — fixed average bitrate. Use when you have a streaming budget or need a predictable file size.</li>
+    <li><strong>Two-pass</strong> — analyze first, then encode. Slowest, but gives the best quality at a fixed target file size.</li>
+  </ul>
+
+<pre><code># CRF — pick a quality, accept whatever bitrate it produces
+ffmpeg -i input.mp4 -c:v libx264 -preset slow -crf 20 -c:a aac output.mp4
+
+# Single-pass bitrate — pick a bitrate, accept whatever quality
+ffmpeg -i input.mp4 -c:v libx264 -preset slow -b:v 4M -c:a aac output.mp4
+
+# Two-pass — best quality for an exact target file size
+ffmpeg -y -i input.mp4 -c:v libx264 -preset slow -b:v 4M -pass 1 -an -f mp4 NUL
+ffmpeg    -i input.mp4 -c:v libx264 -preset slow -b:v 4M -pass 2 -c:a aac output.mp4</code></pre>
+
+  <h4>The <code>-tune</code> flag</h4>
+  <p>Optional content-aware adjustment for libx264 / libx265. Pick the one that matches your input:</p>
+  <ul class="tight">
+    <li><code>film</code> — live-action, default-ish</li>
+    <li><code>animation</code> — cartoons / anime; favours flat regions</li>
+    <li><code>grain</code> — preserves film grain (don't smooth it away)</li>
+    <li><code>stillimage</code> — slideshows</li>
+    <li><code>fastdecode</code> — for low-power playback devices</li>
+    <li><code>zerolatency</code> — disable look-ahead for live streaming / video calls</li>
+  </ul>
+
+  <h4>CPU vs GPU encoders</h4>
+  <p>Hardware encoders (<code>h264_nvenc</code>, <code>h264_qsv</code>, <code>h264_amf</code>) are <strong>much faster</strong> than libx264 — often 5–20× — but produce <strong>~10–25% larger</strong> files for the same visual quality. The right choice depends on the workload:</p>
+  <ul class="tight">
+    <li><strong>Real-time capture or live streaming</strong> → GPU encoder, every time.</li>
+    <li><strong>Bulk batch transcoding where you have idle GPU</strong> → GPU encoder.</li>
+    <li><strong>Archival / mastering / final delivery</strong> → libx264 or libx265 with a slow preset and a CRF.</li>
+  </ul>
+
+  <h3 id="appendix-glossary">A.3 Glossary</h3>
+  <p>The terms that come up over and over once you start working with video. Knowing these makes documentation, error messages, and forum threads much easier to read.</p>
+
+  <table>
+    <tr><th>Term</th><th>Meaning</th></tr>
+    <tr><td><strong>Codec</strong></td><td>The algorithm that <strong>en</strong>codes and <strong>dec</strong>odes media. Examples: H.264, H.265, AV1, AAC, Opus, MP3.</td></tr>
+    <tr><td><strong>Container</strong></td><td>The file format that wraps streams + metadata together. Examples: <code>.mp4</code>, <code>.mkv</code>, <code>.webm</code>. Independent from the codec inside.</td></tr>
+    <tr><td><strong>Stream</strong></td><td>A single track inside a container — usually one video, one or more audio, optional subtitles.</td></tr>
+    <tr><td><strong>Mux / Demux</strong></td><td>To <em>mux</em> = combine streams into a container. To <em>demux</em> = pull streams out. No re-encoding involved.</td></tr>
+    <tr><td><strong>Transcode</strong></td><td>Decode + re-encode. Slow. Used to change codec or quality.</td></tr>
+    <tr><td><strong>Transmux</strong></td><td>Copy streams into a different container <em>without</em> re-encoding. Fast — equivalent to <code>-c copy</code>.</td></tr>
+    <tr><td><strong>Frame</strong></td><td>A single image inside a video stream.</td></tr>
+    <tr><td><strong>I-frame (keyframe)</strong></td><td>Self-contained image, decodable on its own. Largest type.</td></tr>
+    <tr><td><strong>P-frame</strong></td><td>"Predicted" — only stores the difference from previous frames. Smaller than I-frames.</td></tr>
+    <tr><td><strong>B-frame</strong></td><td>"Bi-directional" — predicted from frames before <em>and</em> after. Smallest, most compressed.</td></tr>
+    <tr><td><strong>GOP</strong></td><td>"Group of Pictures" — the sequence between two keyframes (e.g. I&nbsp;P&nbsp;P&nbsp;B&nbsp;P&nbsp;B&nbsp;P&nbsp;…&nbsp;I). Shorter GOPs = better seeking, larger files.</td></tr>
+    <tr><td><strong>Bitrate</strong></td><td>Bits per second of compressed data. Higher = bigger file, generally better quality.</td></tr>
+    <tr><td><strong>CBR / VBR / CRF</strong></td><td><strong>C</strong>onstant / <strong>V</strong>ariable / <strong>C</strong>onstant <strong>R</strong>ate <strong>F</strong>actor — three ways to control the bitrate-vs-quality trade-off. See <a href="#appendix-perf">A.2</a>.</td></tr>
+    <tr><td><strong>Resolution</strong></td><td>Width × height in pixels (e.g. 1920×1080).</td></tr>
+    <tr><td><strong>Frame rate</strong> (FPS)</td><td>Frames per second. Common values: 24 (film), 30, 60.</td></tr>
+    <tr><td><strong>Pixel format</strong> (<code>pix_fmt</code>)</td><td>How color and luminance bits are laid out per pixel. <code>yuv420p</code> is the universal default for 8-bit H.264.</td></tr>
+    <tr><td><strong>PTS / DTS</strong></td><td><strong>P</strong>resentation / <strong>D</strong>ecode <strong>T</strong>ime <strong>S</strong>tamp. PTS = when a frame should display. DTS = when it should be decoded. Differ when B-frames are present.</td></tr>
+    <tr><td><strong>Filter graph</strong></td><td>A pipeline of operations applied to a stream. Specified via <code>-vf</code> (single video chain) or <code>-filter_complex</code> (multi-input/output).</td></tr>
+    <tr><td><strong>Hardware acceleration</strong></td><td>Using dedicated GPU silicon (NVENC, QSV, VAAPI, AMF) for encode/decode. Much faster than CPU; slightly larger files at same quality.</td></tr>
+    <tr><td><strong>Lossy / Lossless</strong></td><td>Lossy = original cannot be exactly recovered (e.g. H.264, AAC). Lossless = bit-perfect reconstruction (e.g. FLAC, FFV1, ALAC).</td></tr>
+    <tr><td><strong>Profile / Level</strong></td><td>Codec sub-specifications that limit which features a decoder must support. <code>main</code>, <code>high</code> for H.264.</td></tr>
+    <tr><td><strong>Chroma subsampling</strong></td><td>Storing color information at lower resolution than brightness. <code>4:2:0</code> (default) uses 1/4 the color samples; the eye barely notices.</td></tr>
+  </table>
+</section>
+
+<footer>
+  <strong>FFmpeg Intro:</strong> A practical introduction to FFmpeg — what it is, where it came from, and how to use it for the most common audio and video tasks. Built around real command examples you can adapt as you go.<br>
+  <small>Updated 2026-05-08</small>
+</footer>
+
+</main>
+</div>
+
+<script>
+(function() {
+  // ----- Theme toggle (light / dark) -----
+  var root = document.documentElement;
+  var stored = null;
+  try { stored = localStorage.getItem('theme'); } catch (e) {}
+  var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var initialTheme = stored || (prefersDark ? 'dark' : 'light');
+  root.setAttribute('data-theme', initialTheme);
+
+  var toggle = document.getElementById('themeToggle');
+  if (toggle) {
+    toggle.addEventListener('click', function() {
+      var current = root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      var next = current === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('theme', next); } catch (e) {}
+    });
+  }
+
+  // ----- Copy-to-clipboard buttons on every <pre> -----
+  document.querySelectorAll('pre').forEach(function(pre) {
+    var wrapper = document.createElement('div');
+    wrapper.className = 'code-block';
+    pre.parentNode.insertBefore(wrapper, pre);
+    wrapper.appendChild(pre);
+
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.setAttribute('aria-label', 'Copy code to clipboard');
+    wrapper.appendChild(btn);
+
+    btn.addEventListener('click', function() {
+      var text = pre.innerText.replace(/ /g, ' ');
+      var done = function() {
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1400);
+      };
+      var fail = function() {
+        btn.textContent = 'Failed';
+        setTimeout(function() { btn.textContent = 'Copy'; }, 1400);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(fail);
+      } else {
+        // Fallback for older browsers / file:// origins
+        try {
+          var ta = document.createElement('textarea');
+          ta.value = text;
+          ta.setAttribute('readonly', '');
+          ta.style.position = 'absolute';
+          ta.style.left = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          done();
+        } catch (e) { fail(); }
+      }
+    });
+  });
+
+  // Smooth scroll behaviour for in-page anchors
+  document.documentElement.style.scrollBehavior = 'smooth';
+
+
+  // ----- Back-to-top button -----
+  var backToTop = document.getElementById('backToTop');
+  if (backToTop) {
+    backToTop.addEventListener('click', function() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    var btObserverTarget = document.getElementById('top') || document.body;
+    var btObserver = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        backToTop.classList.toggle('visible', !entry.isIntersecting);
+      });
+    }, { threshold: 0, rootMargin: '0px 0px -60% 0px' });
+    btObserver.observe(btObserverTarget);
+  }
+
+  // ----- Heading anchor links -----
+  // Inject a small "#" anchor next to every heading that maps to an id.
+  // For sections, the anchor points to the section id; for h3/h4 with their
+  // own id, it points to that heading's id directly.
+  function makeAnchor(id) {
+    var a = document.createElement('a');
+    a.className = 'header-anchor';
+    a.href = '#' + id;
+    a.setAttribute('aria-label', 'Permalink to this heading');
+    a.title = 'Copy link';
+    a.textContent = '#';
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      var url = location.origin + location.pathname + '#' + id;
+      var done = function() {
+        a.classList.add('copied');
+        setTimeout(function() { a.classList.remove('copied'); }, 1000);
+      };
+      // Update the URL without jumping (since anchor click is preventDefault'd above)
+      history.replaceState(null, '', '#' + id);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(done).catch(done);
+      } else {
+        try {
+          var ta = document.createElement('textarea');
+          ta.value = url;
+          ta.style.position = 'absolute';
+          ta.style.left = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          done();
+        } catch (err) { done(); }
+      }
+    });
+    return a;
+  }
+
+  // Wrap the leading "N." or "A." in each section h2 in a styled badge.
+  document.querySelectorAll('main section[id] > h2').forEach(function(h2) {
+    if (h2.querySelector('.section-num')) return;
+    var first = h2.firstChild;
+    if (!first || first.nodeType !== Node.TEXT_NODE) return;
+    var m = first.nodeValue.match(/^(\s*)(\d+|[A-Z])\.\s+(.*)$/);
+    if (!m) return;
+    var indent = m[1], num = m[2], rest = m[3];
+    var frag = document.createDocumentFragment();
+    if (indent) frag.appendChild(document.createTextNode(indent));
+    var span = document.createElement('span');
+    span.className = 'section-num';
+    span.textContent = num;
+    frag.appendChild(span);
+    frag.appendChild(document.createTextNode(rest));
+    h2.replaceChild(frag, first);
+  });
+
+  // Section-level h2: use the section's id
+  document.querySelectorAll('main section[id]').forEach(function(sec) {
+    var h2 = sec.querySelector(':scope > h2');
+    if (h2 && !h2.querySelector('.header-anchor')) {
+      h2.appendChild(makeAnchor(sec.id));
+    }
+  });
+  // h3 / h4 with their own id
+  document.querySelectorAll('main section h3[id], main section h4[id]').forEach(function(h) {
+    if (!h.querySelector('.header-anchor')) {
+      h.appendChild(makeAnchor(h.id));
+    }
+  });
+
+  // Sticky brand: show once the hero leaves the viewport
+  var hero = document.getElementById('top');
+  var brand = document.getElementById('brand');
+  if (hero && brand) {
+    var heroObserver = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          brand.classList.remove('visible');
+        } else {
+          brand.classList.add('visible');
+        }
+      });
+    }, { threshold: 0, rootMargin: '-40px 0px 0px 0px' });
+    heroObserver.observe(hero);
+  }
+
+  // ----- Collapsible sidebar groups (Appendix, etc.) -----
+  document.querySelectorAll('nav.toc .has-children').forEach(function(group) {
+    var toggle = group.querySelector('.toc-toggle');
+    var parentLink = group.querySelector('.toc-row > a');
+    function setExpanded(expanded) {
+      group.classList.toggle('expanded', expanded);
+      if (toggle) toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    }
+    if (toggle) {
+      toggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        setExpanded(!group.classList.contains('expanded'));
+      });
+    }
+    // Clicking the parent link also expands the group (so children become visible).
+    if (parentLink) {
+      parentLink.addEventListener('click', function() { setExpanded(true); });
+    }
+  });
+
+  // Scroll-spy: highlight the TOC link for the section/sub-heading currently in view.
+  // Position-based strategy: the active target is the last one (in document order)
+  // whose top edge has scrolled at or above an activation threshold near the top
+  // of the viewport. This keeps short subsection headings (like A.3 Glossary)
+  // active while the user is reading the content under them, instead of only
+  // while the heading itself is on screen.
+  var spyTargets = Array.prototype.slice.call(
+    document.querySelectorAll('main section[id], main section[id] h3[id], main section[id] h4[id]')
+  );
+  var tocLinks = {};
+  document.querySelectorAll('nav.toc a[href^="#"]').forEach(function(a) {
+    tocLinks[a.getAttribute('href').slice(1)] = a;
+  });
+  // Only spy on targets that have a matching TOC entry.
+  spyTargets = spyTargets.filter(function(el) { return tocLinks.hasOwnProperty(el.id); });
+
+  var lastTargetId = spyTargets.length ? spyTargets[spyTargets.length - 1].id : null;
+  var ACTIVATION_OFFSET = 120; // px from viewport top
+
+  function isAtBottom() {
+    return (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 4);
+  }
+
+  function updateActive() {
+    var activeId = null;
+
+    if (isAtBottom() && lastTargetId) {
+      activeId = lastTargetId;
+    } else {
+      for (var i = 0; i < spyTargets.length; i++) {
+        if (spyTargets[i].getBoundingClientRect().top <= ACTIVATION_OFFSET) {
+          activeId = spyTargets[i].id;
+        }
+      }
+    }
+
+    Object.keys(tocLinks).forEach(function(id) {
+      tocLinks[id].classList.toggle('active', id === activeId);
+    });
+
+    // Auto-expand parent group when a child link is active.
+    if (activeId) {
+      var link = tocLinks[activeId];
+      var parentGroup = link && link.closest('.has-children');
+      if (parentGroup) {
+        parentGroup.classList.add('expanded');
+        var t = parentGroup.querySelector('.toc-toggle');
+        if (t) t.setAttribute('aria-expanded', 'true');
+      }
+    }
+  }
+
+  // rAF-throttled scroll/resize listeners
+  var ticking = false;
+  function onScroll() {
+    if (!ticking) {
+      window.requestAnimationFrame(function() {
+        updateActive();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+  updateActive();
+})();
+</script>
+
+</body>
+</html>
