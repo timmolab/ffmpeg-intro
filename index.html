@@ -782,6 +782,8 @@
   <p>A practical introduction to FFmpeg — what it is, where it came from, and how to use it for the most common audio and video tasks. Built around real command examples you can adapt as you go.</p>
   <div class="meta">
     <span class="label">Updated 2026-05-08</span>
+    <span class="dot"></span>
+    <a class="label" href="https://github.com/timmolab/ffmpeg-intro">View on GitHub</a>
   </div>
 </header>
 
@@ -1620,7 +1622,7 @@ ffmpeg    -i input.mp4 -c:v libx264 -preset slow -b:v 4M -pass 2 -c:a aac output
 
 <footer>
   <strong>FFmpeg Intro:</strong> A practical introduction to FFmpeg — what it is, where it came from, and how to use it for the most common audio and video tasks. Built around real command examples you can adapt as you go.<br>
-  <small>Updated 2026-05-08</small>
+  <small>Updated 2026-05-08 · <a href="https://github.com/timmolab/ffmpeg-intro">github.com/timmolab/ffmpeg-intro</a></small>
 </footer>
 
 </main>
@@ -1629,11 +1631,12 @@ ffmpeg    -i input.mp4 -c:v libx264 -preset slow -b:v 4M -pass 2 -c:a aac output
 <script>
 (function() {
   // ----- Theme toggle (light / dark) -----
+  // Light mode is the default; dark only kicks in if the user has explicitly
+  // toggled it (and we remembered the choice in localStorage).
   var root = document.documentElement;
   var stored = null;
   try { stored = localStorage.getItem('theme'); } catch (e) {}
-  var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  var initialTheme = stored || (prefersDark ? 'dark' : 'light');
+  var initialTheme = stored || 'light';
   root.setAttribute('data-theme', initialTheme);
 
   var toggle = document.getElementById('themeToggle');
