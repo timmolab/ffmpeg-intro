@@ -1,5 +1,7 @@
 # FFmpeg Intro
 
+![FFmpeg Intro — A practical introduction to FFmpeg](og-image.png)
+
 A practical, single-page introduction to [FFmpeg](https://ffmpeg.org/) — what it is, where it came from, and how to use it for the most common audio and video tasks. Built around real command examples you can adapt as you go.
 
 ## Access FFmpeg Intro
