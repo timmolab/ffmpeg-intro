@@ -182,6 +182,58 @@
   @media (min-width: 1440px) {
     .theme-toggle.fixed-toggle { display: none; }
   }
+  /* ============================================================ */
+  /* Mobile / narrow-viewport: hamburger menu exposing the Pages   */
+  /* panel that lives in the right rail at >=1440px viewports.     */
+  /* ============================================================ */
+  .mobile-menu-btn {
+    position: fixed;
+    top: 20px;
+    right: 68px; /* sits 10px to the left of the theme toggle (right: 20px, 38px wide) */
+    z-index: 100;
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--panel);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .mobile-menu-btn:hover { color: var(--ink); border-color: var(--ink-soft); }
+  .mobile-menu-btn[aria-expanded="true"] {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  .mobile-menu-btn svg { width: 18px; height: 18px; display: block; }
+  .mobile-menu {
+    position: fixed;
+    top: 68px;
+    right: 20px; /* right edge aligns with the theme toggle */
+    z-index: 99;
+    width: 260px;
+    max-width: calc(100vw - 28px);
+    background: var(--panel);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  }
+  .mobile-menu[hidden] { display: none; }
+  .mobile-menu .rs-panel { margin-bottom: 0; }
+  @media (min-width: 1440px) {
+    .mobile-menu-btn,
+    .mobile-menu { display: none !important; }
+  }
+  @media (max-width: 900px) {
+    .mobile-menu-btn { top: 14px; right: 60px; }
+    .mobile-menu { top: 62px; right: 14px; }
+  }
   .brand {
     display: flex;
     align-items: center;
@@ -641,6 +693,24 @@
   </svg>
 </button>
 
+<button class="mobile-menu-btn" id="mobileMenuBtn" type="button" aria-label="Open pages menu" aria-expanded="false" aria-controls="mobileMenu">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <line x1="3" y1="6" x2="21" y2="6"/>
+    <line x1="3" y1="12" x2="21" y2="12"/>
+    <line x1="3" y1="18" x2="21" y2="18"/>
+  </svg>
+</button>
+
+<div class="mobile-menu" id="mobileMenu" hidden>
+  <section class="rs-panel">
+    <h3 class="rs-heading">Pages</h3>
+    <ul>
+      <li><a href="index.html">FFmpeg Intro</a></li>
+      <li><a href="one-liners.html" class="active" aria-current="page">FFmpeg quick one-liners</a></li>
+    </ul>
+  </section>
+</div>
+
 <div class="layout">
 
 <aside class="sidebar">
@@ -1052,6 +1122,39 @@
       }
     });
   });
+
+  // ----- Mobile hamburger menu (exposes the right-rail Pages panel) -----
+  var mobileBtn = document.getElementById('mobileMenuBtn');
+  var mobileMenu = document.getElementById('mobileMenu');
+  if (mobileBtn && mobileMenu) {
+    var setMenuState = function(open) {
+      if (open) {
+        mobileMenu.removeAttribute('hidden');
+        mobileBtn.setAttribute('aria-expanded', 'true');
+      } else {
+        mobileMenu.setAttribute('hidden', '');
+        mobileBtn.setAttribute('aria-expanded', 'false');
+      }
+    };
+    mobileBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      setMenuState(mobileMenu.hasAttribute('hidden'));
+    });
+    document.addEventListener('click', function(e) {
+      if (mobileMenu.hasAttribute('hidden')) return;
+      if (mobileMenu.contains(e.target) || mobileBtn.contains(e.target)) return;
+      setMenuState(false);
+    });
+    mobileMenu.querySelectorAll('a').forEach(function(a) {
+      a.addEventListener('click', function() { setMenuState(false); });
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && !mobileMenu.hasAttribute('hidden')) {
+        setMenuState(false);
+        mobileBtn.focus();
+      }
+    });
+  }
 })();
 </script>
 </body>
